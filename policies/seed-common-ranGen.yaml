@@ -1,0 +1,98 @@
+apiVersion: policy.open-cluster-management.io/v1
+kind: PolicyGenerator
+metadata:
+  name: common-seed
+placementBindingDefaults:
+  name: common-seed-placement-binding
+policyDefaults:
+  # categories: []
+  #controls:
+  #  - PR.DS-1 Data-at-rest
+  namespace: ztp-common
+  # Use an existing placement rule so that placement bindings can be consolidated
+  placement:
+    labelSelector:
+      common: "true"
+      du-profile: "seed"
+  remediationAction: inform
+  severity: low
+  # standards: []
+  namespaceSelector:
+    exclude:
+      - kube-*
+    include:
+      - '*'
+  evaluationInterval:
+    compliant: 10m
+    noncompliant: 10s
+policies:
+- name: common-seed-config-policy
+  policyAnnotations:
+    ran.openshift.io/ztp-deploy-wave: "1"
+  manifests:
+    - path: source-crs/ReduceMonitoringFootprint.yaml
+    # - path: source-crs/DefaultCatsrc.yaml
+    #   patches:
+    #   - metadata:
+    #       name: redhat-operators-disconnected
+    #     spec:
+    #       displayName: disconnected-redhat-operators
+    #       image: registry.example.com:5000/disconnected-redhat-operators/disconnected-redhat-operator-index:v4.9
+    # - path: source-crs/DisconnectedICSP.yaml
+    #   patches:
+    #   - spec:
+    #       repositoryDigestMirrors:
+    #       - mirrors:
+    #         - registry.example.com:5000
+    #         source: registry.redhat.io
+- name: common-seed-subscriptions-policy
+  policyAnnotations:
+    ran.openshift.io/ztp-deploy-wave: "2"
+  manifests:
+    # Logging operator
+    - path: source-crs/ClusterLogNS.yaml
+    - path: source-crs/ClusterLogOperGroup.yaml
+    - path: source-crs/ClusterLogSubscription.yaml
+      patches:
+      - metadata:
+          name: cluster-logging
+        spec:
+          source: redhat-operators
+    - path: source-crs/ClusterLogOperatorStatus.yaml
+    - path: source-crs/ClusterLogServiceAccount.yaml
+    - path: source-crs/ClusterLogServiceAccountAuditBinding.yaml
+    - path: source-crs/ClusterLogServiceAccountInfrastructureBinding.yaml
+    # Ptp operator
+    - path: source-crs/PtpSubscriptionNS.yaml
+    - path: source-crs/PtpSubscription.yaml
+      patches:
+      - metadata:
+          name: ptp-operator-subscription
+        spec:
+          source: redhat-operators
+    - path: source-crs/PtpSubscriptionOperGroup.yaml
+    - path: source-crs/PtpOperatorStatus.yaml
+    # SRIOV operator
+    - path: source-crs/SriovSubscriptionNS.yaml
+    - path: source-crs/SriovSubscriptionOperGroup.yaml
+    - path: source-crs/SriovSubscription.yaml
+      patches:
+      - metadata:
+          name: sriov-network-operator-subscription
+        spec:
+          source: redhat-operators
+    - path: source-crs/SriovOperatorStatus.yaml
+     # LVM Storage operator
+    - path: source-crs/StorageLVMSubscriptionNS.yaml
+    - path: source-crs/StorageLVMSubscription.yaml
+      patches:
+      - metadata:
+          name: lvms-operator
+        spec:
+          source: redhat-operators
+    - path: source-crs/StorageLVMSubscriptionOperGroup.yaml
+     # Lifecycle Agent operator
+    - path: source-crs/LifecycleAgentNS.yaml
+    - path: source-crs/LifecycleAgentOperGroup.yaml
+    - path: source-crs/LifecycleAgentSubscription.yaml
+

@@ -1,0 +1,79 @@
+apiVersion: siteconfig.open-cluster-management.io/v1alpha1
+kind: ClusterInstance
+metadata:
+  name: "seed-clusterinstance"
+  namespace: "seed-sno"
+spec:
+  clusterName: seed-sno
+  clusterImageSetNameRef: img4.19.4-x86-64-appsub
+  baseDomain: cotton.blue
+  holdInstallation: false
+  extraManifestsRefs:
+    - name: extra-manifests-cm
+  machineNetwork:
+    - cidr: 192.168.1.0/24
+  networkType: OVNKubernetes
+  sshPublicKey: <SSH PUBLIC KEY>
+  pullSecretRef:
+    name: "assisted-deployment-pull-secret"
+  templateRefs:
+    - name: ai-cluster-templates-v1
+      namespace: open-cluster-management
+  extraLabels:
+    ManagedCluster:
+      siteName: "factory"
+      group-du-sno: ""
+      common: "true"
+      du-profile: "seed"
+  cpuPartitioningMode: AllNodes
+  nodes:
+    - role: master
+      templateRefs:
+        - name: ai-node-templates-v1
+          namespace: open-cluster-management
+      bmcCredentialsName:
+        name: "seed-sno-bmh-secret"
+      bmcAddress: redfish-virtualmedia+http://192.168.1.105:8000/redfish/v1/Systems/bd040e3b-92c8-4349-affb-c32bdb126800
+      bootMACAddress: 52:54:00:47:7c:f7
+      bootMode: UEFI
+      hostName: seed-sno
+      installConfigOverrides: |
+        {
+          "capabilities": {
+            "baselineCapabilitySet": "None",
+            "additionalEnabledCapabilities": [
+              "NodeTuning",
+              "OperatorLifecycleManager",
+              "Ingress"
+            ]
+          }
+        }
+      nodeNetwork:
+        interfaces:
+          - name: "enp1s0"
+            macAddress: "52:54:00:47:7c:f7"
+        config:
+          interfaces:
+            - name: enp1s0
+              type: ethernet
+              state: up
+              ipv4:
+                enabled: true
+                address:
+                  - ip: "192.168.1.69"
+                    prefix-length: 24
+                dhcp: false
+              ipv6:
+                enabled: false
+          dns-resolver:
+             config:
+               search:
+               - cotton.blue
+               server:
+               - 192.168.1.1
+          routes:
+            config:
+            - destination: 0.0.0.0/0
+              next-hop-interface: enp1s0
+              next-hop-address: 192.168.1.1
+              table-id: 254

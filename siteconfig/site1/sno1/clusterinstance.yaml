@@ -1,0 +1,66 @@
+apiVersion: siteconfig.open-cluster-management.io/v1alpha1
+kind: ClusterInstance
+metadata:
+  name: "sno1-clusterinstance"
+  namespace: "sno1"
+spec:
+  clusterName: sno1
+  clusterImageSetNameRef: img4.19.4-x86-64-appsub
+  baseDomain: cotton.blue
+  holdInstallation: false
+  machineNetwork:
+    - cidr: 192.168.1.0/24
+  networkType: OVNKubernetes
+  sshPublicKey: <SSH PUBLIC KEY>
+  pullSecretRef:
+    name: "assisted-deployment-pull-secret"
+  templateRefs:
+    - name: ibi-cluster-templates-v1
+      namespace: open-cluster-management
+  extraLabels:
+    ManagedCluster:
+      siteName: "site1"
+      group-du-sno: ""
+      common: "true"
+      du-profile: ""
+  cpuPartitioningMode: AllNodes
+  nodes:
+    - role: master
+      templateRefs:
+        - name: ibi-node-templates-v1
+          namespace: open-cluster-management
+      bmcCredentialsName:
+        name: "sno1-bmh-secret"
+      bmcAddress: redfish-virtualmedia+http://192.168.1.105:8000/redfish/v1/Systems/b4dc8485-78df-43fb-96b0-2dbc6d837244
+      bootMACAddress: 52:54:00:6a:b8:7d
+      bootMode: UEFI
+      hostName: sno1
+      nodeNetwork:
+        interfaces:
+          - name: "enp1s0"
+            macAddress: "52:54:00:6a:b8:7d"
+        config:
+          interfaces:
+            - name: enp1s0
+              type: ethernet
+              state: up
+              ipv4:
+                enabled: true
+                address:
+                  - ip: "192.168.1.71"
+                    prefix-length: 24
+                dhcp: false
+              ipv6:
+                enabled: false
+          dns-resolver:
+             config:
+               search:
+               - cotton.blue
+               server:
+               - 192.168.1.1
+          routes:
+            config:
+            - destination: 0.0.0.0/0
+              next-hop-interface: enp1s0
+              next-hop-address: 192.168.1.1
+              table-id: 254

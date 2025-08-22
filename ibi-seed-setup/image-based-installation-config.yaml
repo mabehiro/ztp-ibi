@@ -1,0 +1,67 @@
+#
+# Note: This is a sample ImageBasedInstallationConfig file showing
+# which fields are available to aid you in creating your
+# own image-based-installation-config.yaml file.
+#
+apiVersion: v1beta1
+kind: ImageBasedInstallationConfig
+metadata:
+  name: example-image-based-installation-config
+# The following fields are required
+seedImage: quay.io/arthurdent/seed-container-image:latest
+seedVersion: 4.19.4
+extraPartitionStart: "-500G"
+installationDisk: /dev/sda
+sshKey: <SSH PUBLIC KEY>
+pullSecret: <PULL SECRET>
+# networkConfig is optional and contains the network configuration for the host in NMState format.
+# See https://nmstate.io/examples.html for examples.
+networkConfig:
+  interfaces:
+    - name: enp1s0
+      type: ethernet
+      state: up
+      mac-address: "52:54:00:6a:b8:7d"
+      ipv4:
+        enabled: true
+        address:
+          - ip: "192.168.1.70"
+            prefix-length: 24
+        dhcp: false
+      ipv6:
+        enabled: false
+  dns-resolver:
+      config:
+        server:
+          - "192.168.1.1"
+  routes:
+    config:
+    - destination: "0.0.0.0/0"
+      metric: 254
+      next-hop-address: "192.168.1.1"
+      next-hop-interface: enp1s0
+skipDiskCleanup: true
+coreosInstallerArgs:
+   - "--save-partindex"
+   - "6"
+ignitionConfigOverride: |
+  {
+    "ignition": {
+      "version": "3.2.0"
+    },
+    "storage": {
+      "disks": [
+        {
+          "device": "/dev/sda",
+          "partitions": [
+            {
+              "label": "storage",
+              "number": 6,
+              "sizeMiB": 0,
+              "startMiB": 819200
+            }
+          ]
+        }
+      ]
+    }
+  }

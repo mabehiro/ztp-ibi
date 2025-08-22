@@ -1,0 +1,10 @@
+generators:
+# Seed
+- seed-common-ranGen.yaml
+- seed-group-du-sno-ranGen.yaml
+
+# Site1 snos
+- site1-sno.yaml
+
+resources:
+- ns.yaml

@@ -1,0 +1,64 @@
+apiVersion: policy.open-cluster-management.io/v1
+kind: PolicyGenerator
+metadata:
+  name: group-du-sno-seed
+placementBindingDefaults:
+  name: group-du-sno-seed-placement-binding
+policyDefaults:
+  # categories: []
+  #controls:
+  #  - PR.DS-1 Data-at-rest
+  namespace: ztp-group
+  # Use an existing placement rule so that placement bindings can be consolidated
+  placement:
+    labelSelector:
+      group-du-sno: ""
+      du-profile: "seed"
+  remediationAction: inform
+  severity: low
+  # standards: []
+  namespaceSelector:
+    exclude:
+      - kube-*
+    include:
+      - '*'
+  evaluationInterval:
+    compliant: 10m
+    noncompliant: 10s
+policies:
+- name: group-du-sno-seed-config-policy
+  policyAnnotations:
+    ran.openshift.io/ztp-deploy-wave: "10"
+  manifests:
+    - path: source-crs/DisableOLMPprof.yaml
+    - path: source-crs/SriovOperatorConfigForSNO.yaml
+      complianceType: mustonlyhave
+      patches:
+      - spec:
+          configDaemonNodeSelector:
+            node-role.kubernetes.io/master: ""
+    - path: source-crs/DisableSnoNetworkDiag.yaml
+    - path: source-crs/PerformanceProfile-SetSelector.yaml
+      patches:
+      - spec:
+          cpu:
+            # These must be tailored for the specific hardware platform
+            isolated: "4-9"
+            reserved: "0-3"
+          hugepages:
+            defaultHugepagesSize: 2M
+            pages:
+            - size: 2M
+              count: 512
+          machineConfigPoolSelector:
+            pools.operator.machineconfiguration.openshift.io/master: ""
+          nodeSelector:
+            node-role.kubernetes.io/master: ''
+    - path: source-crs/TunedPerformancePatch.yaml
+      patches:
+      - spec:
+          recommend:
+          - machineConfigLabels:
+              machineconfiguration.openshift.io/role: "master"
+            priority: 19
+            profile: performance-patch
